@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
-<title>중등교육과 자료 취합</title>
+<title>2026 중등교육과 자료 취합</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@500;700;800&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
@@ -27,7 +27,7 @@
   --t1:#7fa8e6; --t2:#d6a272; --t3:#6cc596; --t4:#cf93d2; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.6;padding-inline:16px;padding-block:28px 64px}
-.wrap{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
 h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.3}
 h1{font-size:clamp(26px,5vw,34px);font-weight:800;letter-spacing:-.01em}
 h2{font-size:19px;font-weight:700}
@@ -62,7 +62,33 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .filters{display:flex;flex-wrap:wrap;gap:6px}
 .filters button{padding:5px 12px;font-size:13px;border-radius:999px}
 .filters button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.btn-create{padding:9px 16px;white-space:nowrap}
+.list-tools{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;justify-content:flex-end}
+#create-box{border:2px solid var(--accent);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px;background:var(--accent-soft)}
+#create-box .sub{background:var(--paper)}
+#my-box{border:2px solid var(--ink);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px;background:var(--paper)}
+.my-stats{display:flex;flex-wrap:wrap;gap:10px}
+.my-stat{border:1px solid var(--line);border-radius:8px;padding:10px 14px;min-width:120px;background:var(--bg)}
+.my-stat b{display:block;font-family:var(--display);font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2}
+.my-stat span{font-size:12px;color:var(--muted)}
+.my-stat.warn b{color:var(--stamp)}
+table.my td{vertical-align:middle}
+.prog{display:flex;align-items:center;gap:8px;min-width:150px}
+.prog .bar{flex:1;height:8px}
+.prog .bar>i{background:var(--ok)}
+.prog .size{min-width:52px;text-align:right}
+.my-title{font-weight:600;overflow-wrap:anywhere}
+.my-title small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+tr.is-closed td{color:var(--muted)}
+/* 진행 중인 취합(왼쪽) · 제출(오른쪽) 나란히 */
+.duo{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:20px;align-items:start}
+.duo>*{min-width:0}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);max-height:calc(100vh - 32px);overflow:auto;border-top:4px solid var(--accent)}
+.side-empty{min-height:260px;justify-content:center;align-items:center;text-align:center;border:2px dashed var(--line);background:transparent}
+.side-empty .arrow{font-family:var(--display);font-size:28px;color:var(--accent);line-height:1}
+@media (max-width:900px){.duo{grid-template-columns:1fr}.side{position:static;max-height:none;overflow:visible}.side-empty{display:none!important}.arrow-wide{display:none}}
+@media (min-width:901px){.arrow-narrow{display:none}}
 .card{text-align:left;border:1px solid var(--line);border-left:5px solid var(--tc,var(--accent));border-radius:8px;padding:14px;background:var(--paper);display:flex;flex-direction:column;gap:6px;cursor:pointer;font-weight:400}
 .card:hover{border-color:var(--tc,var(--accent))}
 .card.sel{box-shadow:0 0 0 2px var(--tc,var(--accent))}
@@ -135,7 +161,7 @@ img{max-width:100%}
 <div class="wrap">
   <header>
     <span class="eyebrow">경상남도교육청 · 중등교육과</span>
-    <h1>중등교육과 자료 취합</h1>
+    <h1>2026 중등교육과 자료 취합</h1>
     <p class="muted">담당자가 취합 제목과 대상을 등록하면, 누구나 그 건을 골라 파일을 올릴 수 있어요. 여러 사람이 동시에 올려도 괜찮아요.</p>
   </header>
 
@@ -151,19 +177,30 @@ img{max-width:100%}
     <p id="gate-msg" class="muted" style="font-size:14px"></p>
   </section>
 
-  <!-- 진행 중인 취합 -->
-  <section class="panel" id="list-sec" hidden>
+  <div class="duo" id="duo" hidden>
+  <!-- 진행 중인 취합 (왼쪽) -->
+  <section class="panel" id="list-sec">
     <div class="row" style="justify-content:space-between">
-      <div><h2>진행 중인 취합</h2><p class="muted" style="font-size:13px" id="list-hint">제목 카드를 누르면 파일 제출 칸이 열려요.</p></div>
-      <label class="check"><input type="checkbox" id="show-closed"> 마감된 건도 보기</label>
+      <div><h2>진행 중인 취합</h2><p class="muted" style="font-size:13px" id="list-hint">제목 카드를 누르면 <span class="arrow-wide">오른쪽에</span><span class="arrow-narrow">아래에</span> 제출 칸이 열려요.</p></div>
+      <div class="list-tools">
+        <label class="check"><input type="checkbox" id="show-closed"> 마감된 건도 보기</label>
+        <button type="button" class="btn-create" id="open-mine">내가 등록한 취합 현황</button>
+        <button type="button" class="primary btn-create" id="open-create">+ 취합 등록</button>
+      </div>
     </div>
+    <p id="list-msg" class="msg ok" hidden></p>
     <div class="filters" id="filters"></div>
     <div class="cards" id="cards"></div>
-    <p class="empty" id="cards-empty">아직 등록된 취합이 없어요. 아래 <b>담당자 전용</b> 칸에서 취합 제목과 대상을 적어 등록해 주세요.</p>
+    <p class="empty" id="cards-empty">아직 등록된 취합이 없어요. 위의 <b>+ 취합 등록</b> 버튼을 눌러 첫 취합을 등록해 주세요.</p>
   </section>
 
-  <!-- 파일 제출 -->
-  <section class="panel" id="submit" hidden>
+  <!-- 파일 제출 (오른쪽) -->
+  <section class="panel side side-empty" id="submit-empty">
+    <span class="arrow">←</span>
+    <h2 id="empty-title">취합을 골라 주세요</h2>
+    <p class="muted" style="font-size:14px" id="empty-text">왼쪽 '진행 중인 취합'에서 제목 카드를 누르면<br>여기에 제출 칸이 열려요.</p>
+  </section>
+  <section class="panel side" id="submit" hidden>
     <div class="row" style="justify-content:space-between;align-items:flex-start">
       <div style="min-width:0"><span class="eyebrow" id="sub-eyebrow">파일 제출</span><div class="seltitle" id="sub-title"></div></div>
       <button type="button" class="small" id="sub-close">닫기</button>
@@ -200,10 +237,33 @@ img{max-width:100%}
       <ul class="files" id="mine-list"></ul>
     </div>
   </section>
+  </div>
 
   <!-- 담당자 전용 -->
   <section class="panel desk" id="desk" hidden>
-    <div><span class="eyebrow">담당자 전용</span><h2>취합 등록</h2><p class="muted" style="font-size:14px">취합이 필요한 분은 누구나 등록할 수 있어요.</p></div>
+    <div><span class="eyebrow">담당자 전용</span><p class="muted" style="font-size:14px;margin-top:4px" id="desk-hint">카드를 고르면 그 취합의 현황과 취합하기 버튼이 여기에 나와요.</p></div>
+    <div id="my-box" hidden>
+      <div class="row" style="justify-content:space-between;align-items:flex-start">
+        <div><h2>내가 등록한 취합 현황</h2><p class="muted" style="font-size:14px" id="my-basis">이 컴퓨터에서 등록한 취합이에요.</p></div>
+        <button type="button" class="small" id="close-mine">닫기</button>
+      </div>
+      <div class="row" style="gap:8px">
+        <label for="my-owner" style="margin:0;font-weight:500">담당자 이름으로 보기</label>
+        <select id="my-owner" style="width:auto;min-width:200px"></select>
+      </div>
+      <div class="my-stats" id="my-stats"></div>
+      <div class="tablewrap">
+        <table class="my">
+          <thead><tr><th>취합 제목</th><th>마감</th><th>제출 현황</th><th>미제출</th><th></th></tr></thead>
+          <tbody id="my-tbl"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="create-box" hidden>
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
+      <div><h2>취합 등록</h2><p class="muted" style="font-size:14px">취합이 필요한 분은 누구나 등록할 수 있어요.</p></div>
+      <button type="button" class="small" id="close-create">닫기</button>
+    </div>
     <div class="sub">
       <div><label for="new-title"><span class="step">1</span>취합 제목</label><input type="text" id="new-title" maxlength="80" placeholder="예: 2027학년도 고교학점제 공동교육과정 개설 수요 조사"></div>
       <div>
@@ -238,7 +298,8 @@ img{max-width:100%}
         <ul class="files" id="tpl-pending" style="margin-top:8px"></ul>
       </div>
       <div><label for="new-desc">안내 문구 (선택)</label><input type="text" id="new-desc" maxlength="200" placeholder="예: 붙임 양식(한글)에 작성하여 기관명으로 저장 후 제출"></div>
-      <div class="row"><button class="primary" id="btn-create">취합 등록</button><span id="create-msg" class="muted"></span></div>
+      <div class="row"><button class="primary" id="btn-create">취합 등록</button><button type="button" id="cancel-create">취소</button><span id="create-msg" class="muted"></span></div>
+    </div>
     </div>
 
     <div id="detail" hidden style="display:flex;flex-direction:column;gap:16px">
@@ -468,8 +529,11 @@ function select(id,scroll){
   selected=id;
   renderAll();
   if(!scroll) return;
-  const target=!$("submit").hidden?$("submit"):!$("detail").hidden?$("detail"):null;
-  if(target) requestAnimationFrame(()=>target.scrollIntoView({behavior:"smooth",block:"start"}));
+  const wide=window.matchMedia("(min-width:901px)").matches;
+  if(!$("submit").hidden){
+    if(!wide) requestAnimationFrame(()=>$("submit").scrollIntoView({behavior:"smooth",block:"start"}));
+    else { $("submit").scrollTop=0; const n=$("in-name"); if(n&&!n.value) n.focus({preventScroll:true}); }
+  } else if(!$("detail").hidden && !wide) requestAnimationFrame(()=>$("detail").scrollIntoView({behavior:"smooth",block:"start"}));
 }
 
 /* ---------- 제출 ---------- */
@@ -665,8 +729,11 @@ async function createReq(){
     }
     await retry(()=>db.doc(`reqs/${id}`).set(data));
     ["new-title","new-desc","new-deadline","new-question"].forEach(k=>$(k).value=""); picked.clear(); renderPicker(); tplPending=[]; renderTplPending();
-    $("create-msg").textContent=`'${title}' 취합을 등록했어요. 이 페이지 링크를 대상자에게 보내 주세요.`;
+    $("create-msg").textContent="";
+    closeCreate();
+    showListMsg(`'${title}' 취합을 등록했어요. 이 페이지 주소를 대상자에게 보내 주세요.`);
     select(id,false);
+    $("duo").scrollIntoView({behavior:"smooth",block:"start"});
   }catch(e){$("create-msg").textContent="등록하지 못했어요. 다시 시도해 주세요.";}
   btn.disabled=false;
 }
@@ -839,6 +906,12 @@ function renderAll(){
   renderCards();
   const r=curReq(), open=canWrite&&r&&!r.closed;
   $("submit").hidden=!open;
+  $("submit-empty").hidden=open;
+  if(!open){
+    const closedSel=r&&r.closed;
+    $("empty-title").textContent=closedSel?"마감된 취합이에요":"취합을 골라 주세요";
+    $("empty-text").innerHTML=closedSel?"제출이 막힌 건이에요.<br>현황과 받은 파일은 아래 <b>담당자 전용</b> 칸에서 볼 수 있어요.":"왼쪽 '진행 중인 취합'에서 제목 카드를 누르면<br>여기에 제출 칸이 열려요.";
+  }
   if(open){
     const m=modeOf(r);
     $("sub-title").textContent=r.title;
@@ -849,6 +922,7 @@ function renderAll(){
     renderReqSelect(); renderMine();
   }
   renderDetail();
+  renderMyReqs();
 }
 
 /* ---------- wiring ---------- */
@@ -953,7 +1027,49 @@ $("btn-ans-xlsx").onclick=async()=>{const r=curReq();if(!r)return;
   const ws=XLSX.utils.aoa_to_sheet(rows); ws["!cols"]=[{wch:10},{wch:14},{wch:70},{wch:22}];
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"의견");
   await save(safeName(`${r.title}_의견_${stamp()}.xlsx`),new Blob([XLSX.write(wb,{bookType:"xlsx",type:"array"})]));};
-$("sub-close").onclick=()=>{const keep=selected; select(null,false); const c=[...document.querySelectorAll(".card")]; if(c[0]) $("list-sec").scrollIntoView({behavior:"smooth",block:"start"});};
+function openCreate(){
+  const box=$("create-box"); box.hidden=false;
+  requestAnimationFrame(()=>{ box.scrollIntoView({behavior:"smooth",block:"start"}); $("new-title").focus({preventScroll:true}); });
+}
+function closeCreate(){ $("create-box").hidden=true; }
+/* ---------- 내가 등록한 취합 현황 ---------- */
+let myOwner="";
+function fillMyOwner(){
+  const sel=$("my-owner"), keep=myOwner;
+  sel.innerHTML='<option value="">이 컴퓨터에서 등록한 것</option>'+TEAMS.map(t=>`<optgroup label="${esc(t.name)}">${t.staff.map(([n,pos])=>`<option value="${esc(n)}">${esc(n)} ${esc(pos)}</option>`).join("")}</optgroup>`).join("");
+  sel.value=keep;
+}
+function renderMyReqs(){
+  if($("my-box").hidden) return;
+  const list=reqs.filter(r=>myOwner?r.owner===myOwner:r.createdBy===uid)
+    .sort((a,b)=>(a.closed-b.closed)||((a.deadline||"9999")<(b.deadline||"9999")?-1:1)||b.createdAt-a.createdAt);
+  $("my-basis").textContent=myOwner?`담당자가 '${myOwner}'(으)로 지정된 취합이에요.`:"이 컴퓨터(브라우저)에서 등록한 취합이에요. 다른 PC에서 등록했다면 아래에서 담당자 이름을 골라 보세요.";
+  const today=new Date(); today.setHours(0,0,0,0);
+  const soon=list.filter(r=>!r.closed&&r.deadline&&(()=>{const n=Math.round((new Date(r.deadline+"T00:00:00")-today)/864e5);return n>=0&&n<=3;})()).length;
+  let totalMissing=0;
+  const rows=list.map(r=>{const done=whoDone(r.id), roster=r.roster||[]; const got=roster.filter(n=>done.has(norm(n))).length; const miss=roster.length-got; if(!r.closed) totalMissing+=miss; return {r,got,total:roster.length,miss,people:done.size};});
+  $("my-stats").innerHTML=`<div class="my-stat"><b>${list.length}</b><span>등록한 취합</span></div><div class="my-stat"><b>${list.filter(r=>!r.closed).length}</b><span>진행 중</span></div><div class="my-stat ${soon?"warn":""}"><b>${soon}</b><span>마감 3일 이내</span></div><div class="my-stat ${totalMissing?"warn":""}"><b>${totalMissing}</b><span>진행 중 미제출 (명)</span></div>`;
+  const tb=$("my-tbl"); tb.innerHTML="";
+  if(!rows.length){ tb.innerHTML=`<tr><td colspan="5" class="empty">${myOwner?"이 담당자로 지정된 취합이 없어요.":"이 컴퓨터에서 등록한 취합이 아직 없어요."}</td></tr>`; return; }
+  rows.forEach(({r,got,total,miss,people})=>{
+    const d=dday(r), pct=total?Math.round(got/total*100):0, t=teamOf(r.team);
+    const tr=document.createElement("tr"); if(r.closed) tr.className="is-closed";
+    tr.innerHTML=`<td><div class="my-title"></div></td><td><span class="dday ${d.c}">${esc(d.t)}</span>${r.deadline?`<div class="size" style="margin-top:2px">${fmtDate(r.deadline)}</div>`:""}</td><td>${total?`<div class="prog"><div class="bar"><i style="width:${pct}%"></i></div><span class="size">${got}/${total}명</span></div>`:`<span class="size">${people}명 제출</span>`}</td><td class="size" style="${miss&&!r.closed?"color:var(--stamp);font-weight:600":""}">${total?miss+"명":"-"}</td><td><button type="button" class="small">현황 보기</button></td>`;
+    const tt=tr.querySelector(".my-title"); tt.textContent=r.title; const sm=document.createElement("small"); sm.textContent=`${t.name} · ${modeOf(r)==="text"?"의견":modeOf(r)==="both"?"파일+의견":"파일"}${r.owner?" · "+r.owner:""}`; tt.appendChild(sm);
+    tr.querySelector("button").onclick=()=>{ select(r.id,false); requestAnimationFrame(()=>$("detail").scrollIntoView({behavior:"smooth",block:"start"})); };
+    tb.appendChild(tr);
+  });
+}
+function openMine(){ const box=$("my-box"); box.hidden=false; fillMyOwner(); renderMyReqs(); requestAnimationFrame(()=>box.scrollIntoView({behavior:"smooth",block:"start"})); }
+$("open-mine").onclick=openMine;
+$("close-mine").onclick=()=>{ $("my-box").hidden=true; };
+$("my-owner").onchange=e=>{ myOwner=e.target.value; renderMyReqs(); };
+let listMsgTimer=null;
+function showListMsg(t){ const m=$("list-msg"); m.textContent=t; m.hidden=false; clearTimeout(listMsgTimer); listMsgTimer=setTimeout(()=>m.hidden=true,8000); }
+$("open-create").onclick=openCreate;
+$("close-create").onclick=closeCreate;
+$("cancel-create").onclick=closeCreate;
+$("sub-close").onclick=()=>{ select(null,false); if(!window.matchMedia("(min-width:901px)").matches) $("list-sec").scrollIntoView({behavior:"smooth",block:"start"}); };
 $("show-closed").onchange=renderCards;
 $("btn-submit").onclick=submitFiles;
 $("btn-create").onclick=createReq;
@@ -967,7 +1083,7 @@ try{const w=localStorage.getItem("who"); if(w) $("in-name").value=w;}catch(_){}
 function showErr(t){$("m-loading").hidden=true;const m=$("m-noaccess");m.hidden=false;m.innerHTML=t;}
 function enterApp(member){
   canWrite=true; isAdmin=!!(member&&member.adminCode);
-  $("gate").hidden=true; $("list-sec").hidden=false; $("desk").hidden=false; $("m-noaccess").hidden=true;
+  $("gate").hidden=true; $("duo").hidden=false; $("desk").hidden=false; $("m-noaccess").hidden=true;
   $("btn-delete").hidden=!isAdmin;
   $("admin-state").textContent=isAdmin?"관리자로 접속 중이에요":"관리자 코드를 입력하면 취합 건 삭제와 저장 공간 정리를 할 수 있어요";
   db.doc("staff/list").onSnapshot(s=>applyStaff(s.exists?s.data():null),()=>{});
@@ -982,7 +1098,6 @@ async function join(code,adminCode){
   return data;
 }
 async function start(){
-  if(APP_TITLE){ document.title=APP_TITLE; }
   if(!firebaseConfig||!firebaseConfig.projectId||/여기에/.test(firebaseConfig.projectId)){
     showErr("<b>firebase-config.js</b> 파일에 Firebase 설정값을 아직 넣지 않았어요. 안내서의 'Firebase 설정값 넣기' 단계를 따라 해 주세요."); return;
   }
