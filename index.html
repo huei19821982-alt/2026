@@ -585,10 +585,10 @@ const snapDoc=s=>({id:s.id,exists:s.exists(),data:()=>s.data(),metadata:s.metada
 function makeDb(fs){
   return {
     doc(path){const r=fDoc(fs,path);return{
-      get:()=>wrap(getDoc(r).then(snapDoc)),
-      set:d=>wrap(setDoc(r,d)),
-      update:d=>wrap(setDoc(r,d,{merge:true})),
-      delete:()=>wrap(deleteDoc(r)),
+      get:()=>wrap(Promise.resolve().then(()=>getDoc(r)).then(snapDoc)),
+      set:d=>wrap(Promise.resolve().then(()=>setDoc(r,d))),
+      update:d=>wrap(Promise.resolve().then(()=>setDoc(r,d,{merge:true}))),
+      delete:()=>wrap(Promise.resolve().then(()=>deleteDoc(r))),
       onSnapshot:(n,er)=>fSnap(r,s=>n(snapDoc(s)),e=>er&&er(mapErr(e)))};},
     collection(path){const r=fCol(fs,path);return{
       onSnapshot:(n,er)=>fSnap(r,q=>n({docs:q.docs.map(snapDoc),size:q.size,metadata:q.metadata}),e=>er&&er(mapErr(e)))};}
@@ -1265,8 +1265,9 @@ $("dir-file").onchange=async e=>{
 };
 $("dir-save").onclick=async()=>{
   if(!dirParsed) return; const btn=$("dir-save"); btn.disabled=true; $("dir-msg").textContent="저장하는 중…";
-  try{ await retry(()=>db.doc("staff/directory").set({...dirParsed,updatedAt:Date.now(),updatedBy:uid||""})); $("dir-msg").textContent="명단을 저장했어요. 이제 '다른 과 직원 추가'에서 고를 수 있어요."; $("dir-preview").hidden=true; dirParsed=null; $("dir-file").value=""; }
-  catch(e){ $("dir-msg").textContent=e&&e.code==="invalid_argument"?"저장 권한이 없어요. 새로고침 후 접속 코드를 다시 입력해 주세요.":"저장하지 못했어요. 다시 시도해 주세요."; btn.disabled=false; }
+  const packed={...dirParsed,depts:dirParsed.depts.map(x=>({d:x.d,p:x.p.map(([n,t,o,e,xx])=>({n,t,o,e,x:xx}))})),updatedAt:Date.now(),updatedBy:uid||""};
+  try{ await retry(()=>db.doc("staff/directory").set(packed)); $("dir-msg").textContent="명단을 저장했어요. 이제 '다른 과 직원 추가'에서 고를 수 있어요."; $("dir-preview").hidden=true; dirParsed=null; $("dir-file").value=""; }
+  catch(e){ $("dir-msg").textContent=e&&e.raw==="permission_denied"?"저장 권한이 없어요. 새로고침 후 접속 코드를 다시 입력해 주세요.":`저장하지 못했어요. (${(e&&(e.raw||e.code))||"오류"}) 다시 시도해 주세요.`; btn.disabled=false; }
 };
 /* ---------- 직원 명단 관리 ---------- */
 let draft=null, draftDirty=false;
@@ -1298,7 +1299,7 @@ function renderStaffEditor(){
 async function saveStaff(data,msg){
   const btn=$("staff-save"); btn.disabled=true;
   try{ await retry(()=>db.doc("staff/list").set(data)); draft=null; draftDirty=false; $("staff-msg").textContent=msg; }
-  catch(e){ $("staff-msg").textContent="저장하지 못했어요. 다시 시도해 주세요."; }
+  catch(e){ $("staff-msg").textContent=`저장하지 못했어요. (${(e&&(e.raw||e.code))||"오류"}) 다시 시도해 주세요.`; }
   btn.disabled=false; setTimeout(()=>$("staff-msg").textContent="",4000);
 }
 $("staff-save").onclick=()=>{
@@ -1430,7 +1431,11 @@ function enterApp(member){
   $("btn-delete").hidden=!isAdmin;
   $("admin-state").textContent=isAdmin?"관리자로 접속 중이에요":"관리자 코드를 입력하면 취합 건 삭제와 저장 공간 정리를 할 수 있어요";
   db.doc("staff/list").onSnapshot(s=>applyStaff(s.exists?s.data():null),()=>{});
-  db.doc("staff/directory").onSnapshot(s=>{ DIR=s.exists?s.data():null; rebuildTeams(); renderDirPick(); },()=>{});
+  db.doc("staff/directory").onSnapshot(s=>{
+    const d=s.exists?s.data():null;
+    DIR=d?{...d,depts:(d.depts||[]).map(x=>({d:x.d,p:(x.p||[]).map(o=>Array.isArray(o)?o:[o.n||"",o.t||"",o.o||"",o.e||"",o.x||""])}))}:null;
+    rebuildTeams(); renderDirPick();
+  },()=>{});
   db.collection("reqs").onSnapshot(q=>{reqs=q.docs.map(d=>({id:d.id,...d.data()}));if(selected&&!reqs.some(r=>r.id===selected)&&!q.metadata.fromCache)selected=null;renderAll();},()=>{});
   db.collection("subs").onSnapshot(q=>{subs=q.docs.map(d=>({uid:d.id,...d.data()}));renderAll();},()=>{});
   db.doc(`subs/${uid}`).onSnapshot(s=>{mine=s.exists?s.data():null;renderMine();},()=>{});
